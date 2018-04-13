@@ -1613,6 +1613,12 @@ function isLocalStorageAvailable() {
     return true;
 }
 
+SimpleMDE.clearAutosave = function (uniqueId) {
+    if (isLocalStorageAvailable()) {
+        localStorage.removeItem('smde_' + uniqueId);
+    }
+};
+
 SimpleMDE.prototype.autosave = function () {
     if (isLocalStorageAvailable()) {
         var simplemde = this;
@@ -1622,9 +1628,14 @@ SimpleMDE.prototype.autosave = function () {
             return;
         }
 
-        if (simplemde.element.form != null && simplemde.element.form != undefined) {
+        var clearOnSubmit = this.options.autosave.clearOnSubmit;
+        if (clearOnSubmit == undefined) {
+            clearOnSubmit = true;
+        }
+
+        if (simplemde.element.form != null && simplemde.element.form != undefined && clearOnSubmit) {
             simplemde.element.form.addEventListener('submit', function () {
-                localStorage.removeItem('smde_' + simplemde.options.autosave.uniqueId);
+                SimpleMDE.clearAutosave(simplemde.options.autosave.uniqueId);
             });
         }
 
