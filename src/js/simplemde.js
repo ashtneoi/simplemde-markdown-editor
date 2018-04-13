@@ -1613,12 +1613,6 @@ function isLocalStorageAvailable() {
     return true;
 }
 
-SimpleMDE.clearAutosave = function (uniqueId) {
-    if (isLocalStorageAvailable()) {
-        localStorage.removeItem('smde_' + uniqueId);
-    }
-};
-
 SimpleMDE.prototype.autosave = function () {
     if (isLocalStorageAvailable()) {
         var simplemde = this;
@@ -1635,7 +1629,7 @@ SimpleMDE.prototype.autosave = function () {
 
         if (simplemde.element.form != null && simplemde.element.form != undefined && clearOnSubmit) {
             simplemde.element.form.addEventListener('submit', function () {
-                SimpleMDE.clearAutosave(simplemde.options.autosave.uniqueId);
+                SimpleMDE.clearAutosavedValue(simplemde.options.autosave.uniqueId);
             });
         }
 
@@ -1677,14 +1671,9 @@ SimpleMDE.prototype.autosave = function () {
     }
 };
 
-SimpleMDE.prototype.clearAutosavedValue = function () {
+SimpleMDE.clearAutosavedValue = function (uniqueId) {
     if (isLocalStorageAvailable()) {
-        if (this.options.autosave == undefined || this.options.autosave.uniqueId == undefined || this.options.autosave.uniqueId == '') {
-            console.log('SimpleMDE: You must set a uniqueId to clear the autosave value');
-            return;
-        }
-
-        localStorage.removeItem('smde_' + this.options.autosave.uniqueId);
+        localStorage.removeItem('smde_' + uniqueId);
     } else {
         console.log('SimpleMDE: localStorage not available, cannot autosave');
     }
@@ -2112,7 +2101,7 @@ SimpleMDE.prototype.toTextArea = function () {
     if (this.autosaveTimeoutId) {
         clearTimeout(this.autosaveTimeoutId);
         this.autosaveTimeoutId = undefined;
-        this.clearAutosavedValue();
+        SimpleMDE.clearAutosavedValue(this.options.autosave.uniqueId);
     }
 };
 
