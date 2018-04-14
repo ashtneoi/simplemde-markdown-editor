@@ -17,7 +17,8 @@ var marked = require('marked');
 // Some variables
 var isMac = /Mac/.test(navigator.platform);
 
-// Mapping of actions that can be bound to keyboard shortcuts or toolbar buttons
+// Mapping of actions that can be bound to keyboard shortcuts or toolbar
+// buttons
 var bindings = {
     'toggleBold': toggleBold,
     'toggleItalic': toggleItalic,
@@ -219,7 +220,9 @@ function toggleFullScreen(editor) {
     if (!/fullscreen/.test(wrap.previousSibling.className)) {
         wrap.previousSibling.className += ' fullscreen';
     } else {
-        wrap.previousSibling.className = wrap.previousSibling.className.replace(/\s*fullscreen\b/, '');
+        wrap.previousSibling.className = (
+            wrap.previousSibling.className.replace(/\s*fullscreen\b/, '')
+        );
     }
 
 
@@ -230,7 +233,9 @@ function toggleFullScreen(editor) {
         if (!/active/.test(toolbarButton.className)) {
             toolbarButton.className += ' active';
         } else {
-            toolbarButton.className = toolbarButton.className.replace(/\s*active\s*/g, '');
+            toolbarButton.className = toolbarButton.className.replace(
+                /\s*active\s*/g, ''
+            );
         }
     }
 
@@ -274,13 +279,21 @@ function toggleCodeBlock(editor) {
     function fencing_line(line) {
         /* return true, if this is a ``` or ~~~ line */
         if (typeof line !== 'object') {
-            throw 'fencing_line() takes a \'line\' object (not a line number, or line text).  Got: ' + typeof line + ': ' + line;
+            throw (
+                'fencing_line() takes a \'line\' object '
+                + '(not a line number, or line text).  '
+                + 'Got: ' + typeof line + ': ' + line
+            );
         }
-        return line.styles && line.styles[2] && line.styles[2].indexOf('formatting-code-block') !== -1;
+        return (
+            line.styles && line.styles[2]
+            && line.styles[2].indexOf('formatting-code-block') !== -1
+        );
     }
 
     function token_state(token) {
-        // base goes an extra level deep when mode backdrops are used, e.g. spellchecker on
+        // base goes an extra level deep when mode backdrops are used, e.g.
+        // spellchecker on
         return token.state.base.base || token.state.base;
     }
 
@@ -302,19 +315,27 @@ function toggleCodeBlock(editor) {
         }));
         var types = firstTok.type ? firstTok.type.split(' ') : [];
         if (lastTok && token_state(lastTok).indentedCode) {
-            // have to check last char, since first chars of first line aren"t marked as indented
+            // have to check last char, since first chars of first line aren't
+            // marked as indented
             return 'indented';
         } else if (types.indexOf('comment') === -1) {
-            // has to be after "indented" check, since first chars of first indented line aren"t marked as such
+            // has to be after "indented" check, since first chars of first
+            // indented line aren"t marked as such
             return false;
-        } else if (token_state(firstTok).fencedChars || token_state(lastTok).fencedChars || fencing_line(line)) {
+        } else if (
+                token_state(firstTok).fencedChars
+                || token_state(lastTok).fencedChars
+                || fencing_line(line)
+        ) {
             return 'fenced';
         } else {
             return 'single';
         }
     }
 
-    function insertFencingAtSelection(cm, cur_start, cur_end, fenceCharsToInsert) {
+    function insertFencingAtSelection(
+            cm, cur_start, cur_end, fenceCharsToInsert
+    ) {
         var start_line_sel = cur_start.line + 1,
             end_line_sel = cur_end.line + 1,
             sel_multi = cur_start.line !== cur_end.line,
@@ -370,8 +391,13 @@ function toggleCodeBlock(editor) {
         if (cur_start.line !== cur_end.line || cur_start.ch !== cur_end.ch) {
             // use selection
 
-            // find the fenced line so we know what type it is (tilde, backticks, number of them)
-            for (block_start = cur_start.line; block_start >= 0; block_start--) {
+            // find the fenced line so we know what type it is (tilde,
+            // backticks, number of them)
+            for (
+                    block_start = cur_start.line;
+                    block_start >= 0;
+                    block_start--
+            ) {
                 line = cm.getLineHandle(block_start);
                 if (fencing_line(line)) {
                     break;
@@ -384,7 +410,8 @@ function toggleCodeBlock(editor) {
             var fence_chars = token_state(fencedTok).fencedChars;
             var start_text, start_line;
             var end_text, end_line;
-            // check for selection going up against fenced lines, in which case we don't want to add more fencing
+            // check for selection going up against fenced lines, in which case
+            // we don't want to add more fencing
             if (fencing_line(cm.getLineHandle(cur_start.line))) {
                 start_text = '';
                 start_line = cur_start.line;
@@ -401,7 +428,10 @@ function toggleCodeBlock(editor) {
                 if (cur_end.ch === 0) {
                     end_line += 1;
                 }
-            } else if (cur_end.ch !== 0 && fencing_line(cm.getLineHandle(cur_end.line + 1))) {
+            } else if (
+                    cur_end.ch !== 0
+                    && fencing_line(cm.getLineHandle(cur_end.line + 1))
+            ) {
                 end_text = '';
                 end_line = cur_end.line + 1;
             } else {
@@ -440,17 +470,27 @@ function toggleCodeBlock(editor) {
         } else {
             // no selection, search for ends of this fenced block
             var search_from = cur_start.line;
-            if (fencing_line(cm.getLineHandle(cur_start.line))) { // gets a little tricky if cursor is right on a fenced line
+            if (fencing_line(cm.getLineHandle(cur_start.line))) {
+                // gets a little tricky if cursor is right on a fenced line
+
                 if (code_type(cm, cur_start.line + 1) === 'fenced') {
                     block_start = cur_start.line;
-                    search_from = cur_start.line + 1; // for searching for "end"
+
+                    search_from = cur_start.line + 1;
+                    // for searching for "end"
                 } else {
                     block_end = cur_start.line;
-                    search_from = cur_start.line - 1; // for searching for "start"
+
+                    search_from = cur_start.line - 1;
+                    // for searching for "start"
                 }
             }
             if (block_start === undefined) {
-                for (block_start = search_from; block_start >= 0; block_start--) {
+                for (
+                        block_start = search_from;
+                        block_start >= 0;
+                        block_start--
+                ) {
                     line = cm.getLineHandle(block_start);
                     if (fencing_line(line)) {
                         break;
@@ -459,7 +499,11 @@ function toggleCodeBlock(editor) {
             }
             if (block_end === undefined) {
                 lineCount = cm.lineCount();
-                for (block_end = search_from; block_end < lineCount; block_end++) {
+                for (
+                        block_end = search_from;
+                        block_end < lineCount;
+                        block_end++
+                ) {
                     line = cm.getLineHandle(block_end);
                     if (fencing_line(line)) {
                         break;
@@ -494,7 +538,11 @@ function toggleCodeBlock(editor) {
             }
         } else {
             // no selection, search for ends of this indented block
-            for (block_start = cur_start.line; block_start >= 0; block_start--) {
+            for (
+                    block_start = cur_start.line;
+                    block_start >= 0;
+                    block_start--
+            ) {
                 line = cm.getLineHandle(block_start);
                 if (line.text.match(/^\s*$/)) {
                     // empty or all whitespace - keep going
@@ -507,7 +555,11 @@ function toggleCodeBlock(editor) {
                 }
             }
             lineCount = cm.lineCount();
-            for (block_end = cur_start.line; block_end < lineCount; block_end++) {
+            for (
+                    block_end = cur_start.line;
+                    block_end < lineCount;
+                    block_end++
+            ) {
                 line = cm.getLineHandle(block_end);
                 if (line.text.match(/^\s*$/)) {
                     // empty or all whitespace - keep going
@@ -520,14 +572,18 @@ function toggleCodeBlock(editor) {
                 }
             }
         }
-        // if we are going to un-indent based on a selected set of lines, and the next line is indented too, we need to
-        // insert a blank line so that the next line(s) continue to be indented code
+        // if we are going to un-indent based on a selected set of lines, and
+        // the next line is indented too, we need to insert a blank line so
+        // that the next line(s) continue to be indented code
         var next_line = cm.getLineHandle(block_end + 1),
             next_line_last_tok = next_line && cm.getTokenAt({
                 line: block_end + 1,
                 ch: next_line.text.length - 1
             }),
-            next_line_indented = next_line_last_tok && token_state(next_line_last_tok).indentedCode;
+            next_line_indented = (
+                next_line_last_tok
+                && token_state(next_line_last_tok).indentedCode
+            );
         if (next_line_indented) {
             cm.replaceRange('\n', {
                 line: block_end + 1,
@@ -536,15 +592,23 @@ function toggleCodeBlock(editor) {
         }
 
         for (var i = block_start; i <= block_end; i++) {
-            cm.indentLine(i, 'subtract'); // TODO: this doesn't get tracked in the history, so can't be undone :(
+            // TODO: this doesn't get tracked in the history, so can't be
+            // undone :(
+            cm.indentLine(i, 'subtract');
         }
         cm.focus();
     } else {
         // insert code formatting
-        var no_sel_and_starting_of_line = (cur_start.line === cur_end.line && cur_start.ch === cur_end.ch && cur_start.ch === 0);
+        var no_sel_and_starting_of_line = (
+            cur_start.line === cur_end.line
+            && cur_start.ch === cur_end.ch
+            && cur_start.ch === 0
+        );
         var sel_multi = cur_start.line !== cur_end.line;
         if (no_sel_and_starting_of_line || sel_multi) {
-            insertFencingAtSelection(cm, cur_start, cur_end, fenceCharsToInsert);
+            insertFencingAtSelection(
+                cm, cur_start, cur_end, fenceCharsToInsert
+            );
         } else {
             _replaceSelection(cm, false, ['`', '`']);
         }
@@ -560,7 +624,8 @@ function toggleBlockquote(editor) {
 }
 
 /**
- * Action for toggling heading size: normal -> h1 -> h2 -> h3 -> h4 -> h5 -> h6 -> normal
+ * Action for toggling heading size:
+ * normal -> h1 -> h2 -> h3 -> h4 -> h5 -> h6 -> normal
  */
 function toggleHeadingSmaller(editor) {
     var cm = editor.codemirror;
@@ -568,7 +633,8 @@ function toggleHeadingSmaller(editor) {
 }
 
 /**
- * Action for toggling heading size: normal -> h6 -> h5 -> h4 -> h3 -> h2 -> h1 -> normal
+ * Action for toggling heading size:
+ * normal -> h6 -> h5 -> h4 -> h3 -> h2 -> h1 -> normal
  */
 function toggleHeadingBigger(editor) {
     var cm = editor.codemirror;
@@ -713,12 +779,16 @@ function toggleSideBySide(editor) {
         preview.className = preview.className.replace(
             /\s*editor-preview-active-side\s*/g, ''
         );
-        toolbarButton.className = toolbarButton.className.replace(/\s*active\s*/g, '');
-        wrapper.className = wrapper.className.replace(/\s*CodeMirror-sided\s*/g, ' ');
+        toolbarButton.className = toolbarButton.className.replace(
+            /\s*active\s*/g, ''
+        );
+        wrapper.className = wrapper.className.replace(
+            /\s*CodeMirror-sided\s*/g, ' '
+        );
     } else {
-        // When the preview button is clicked for the first time,
-        // give some time for the transition from editor.css to fire and the view to slide from right to left,
-        // instead of just appearing.
+        // When the preview button is clicked for the first time, give some
+        // time for the transition from editor.css to fire and the view to
+        // slide from right to left, instead of just appearing.
         setTimeout(function () {
             if (!cm.getOption('fullScreen'))
                 toggleFullScreen(editor);
@@ -738,11 +808,15 @@ function toggleSideBySide(editor) {
         var toolbar = editor.toolbarElements.preview;
         var toolbar_div = wrapper.previousSibling;
         toolbar.className = toolbar.className.replace(/\s*active\s*/g, '');
-        toolbar_div.className = toolbar_div.className.replace(/\s*disabled-for-preview*/g, '');
+        toolbar_div.className = toolbar_div.className.replace(
+            /\s*disabled-for-preview*/g, ''
+        );
     }
 
     var sideBySideRenderingFunction = function () {
-        preview.innerHTML = editor.options.previewRender(editor.value(), preview);
+        preview.innerHTML = editor.options.previewRender(
+            editor.value(), preview
+        );
     };
 
     if (!cm.sideBySideRenderingFunction) {
@@ -750,7 +824,9 @@ function toggleSideBySide(editor) {
     }
 
     if (useSideBySideListener) {
-        preview.innerHTML = editor.options.previewRender(editor.value(), preview);
+        preview.innerHTML = editor.options.previewRender(
+            editor.value(), preview
+        );
         cm.on('update', cm.sideBySideRenderingFunction);
     } else {
         cm.off('update', cm.sideBySideRenderingFunction);
@@ -768,7 +844,9 @@ function togglePreview(editor) {
     var cm = editor.codemirror;
     var wrapper = cm.getWrapperElement();
     var toolbar_div = wrapper.previousSibling;
-    var toolbar = editor.options.toolbar ? editor.toolbarElements.preview : false;
+    var toolbar = (
+        editor.options.toolbar ? editor.toolbarElements.preview : false
+    );
     var preview = wrapper.lastChild;
     if (!preview || !/editor-preview/.test(preview.className)) {
         preview = document.createElement('div');
@@ -781,12 +859,14 @@ function togglePreview(editor) {
         );
         if (toolbar) {
             toolbar.className = toolbar.className.replace(/\s*active\s*/g, '');
-            toolbar_div.className = toolbar_div.className.replace(/\s*disabled-for-preview*/g, '');
+            toolbar_div.className = toolbar_div.className.replace(
+                /\s*disabled-for-preview*/g, ''
+            );
         }
     } else {
-        // When the preview button is clicked for the first time,
-        // give some time for the transition from editor.css to fire and the view to slide from right to left,
-        // instead of just appearing.
+        // When the preview button is clicked for the first time, give some
+        // time for the transition from editor.css to fire and the view to
+        // slide from right to left, instead of just appearing.
         setTimeout(function () {
             preview.className += ' editor-preview-active';
         }, 1);
@@ -804,7 +884,9 @@ function togglePreview(editor) {
 }
 
 function _replaceSelection(cm, active, startEnd, url) {
-    if (/editor-preview-active/.test(cm.getWrapperElement().lastChild.className))
+    if (/editor-preview-active/.test(
+            cm.getWrapperElement().lastChild.className
+    ))
         return;
 
     var text;
@@ -840,7 +922,9 @@ function _replaceSelection(cm, active, startEnd, url) {
 
 
 function _toggleHeading(cm, direction, size) {
-    if (/editor-preview-active/.test(cm.getWrapperElement().lastChild.className))
+    if (/editor-preview-active/.test(
+            cm.getWrapperElement().lastChild.className
+    ))
         return;
 
     var startPoint = cm.getCursor('start');
@@ -910,7 +994,9 @@ function _toggleHeading(cm, direction, size) {
 
 
 function _toggleLine(cm, name) {
-    if (/editor-preview-active/.test(cm.getWrapperElement().lastChild.className))
+    if (/editor-preview-active/.test(
+            cm.getWrapperElement().lastChild.className
+    ))
         return;
 
     var listRegexp = /^(\s*)(\*|-|\+|\d*\.)(\s+)/;
@@ -959,7 +1045,12 @@ function _toggleLine(cm, name) {
                     if (_checkChar(name, arr[2])) {
                         char = '';
                     }
-                    text = arr[1] + char + arr[3] + text.replace(whitespacesRegexp, '').replace(repl[name], '$1');
+                    text = (
+                        arr[1] + char + arr[3]
+                        + text.replace(whitespacesRegexp, '').replace(
+                            repl[name], '$1'
+                        )
+                    );
                 } else {
                     text = char + ' ' + text;
                 }
@@ -978,7 +1069,9 @@ function _toggleLine(cm, name) {
 }
 
 function _toggleBlock(editor, type, start_chars, end_chars) {
-    if (/editor-preview-active/.test(editor.codemirror.getWrapperElement().lastChild.className))
+    if (/editor-preview-active/.test(
+            editor.codemirror.getWrapperElement().lastChild.className
+    ))
         return;
 
     end_chars = (typeof end_chars === 'undefined') ? start_chars : end_chars;
@@ -1047,7 +1140,9 @@ function _toggleBlock(editor, type, start_chars, end_chars) {
 }
 
 function _cleanBlock(cm) {
-    if (/editor-preview-active/.test(cm.getWrapperElement().lastChild.className))
+    if (/editor-preview-active/.test(
+            cm.getWrapperElement().lastChild.className
+    ))
         return;
 
     var startPoint = cm.getCursor('start');
@@ -1073,13 +1168,17 @@ function _mergeProperties(target, source) {
     for (var property in source) {
         if (source.hasOwnProperty(property)) {
             if (source[property] instanceof Array) {
-                target[property] = source[property].concat(target[property] instanceof Array ? target[property] : []);
+                target[property] = source[property].concat(
+                    target[property] instanceof Array ? target[property] : []
+                );
             } else if (
                 source[property] !== null &&
                 typeof source[property] === 'object' &&
                 source[property].constructor === Object
             ) {
-                target[property] = _mergeProperties(target[property] || {}, source[property]);
+                target[property] = _mergeProperties(
+                    target[property] || {}, source[property]
+                );
             } else {
                 target[property] = source[property];
             }
@@ -1339,7 +1438,9 @@ function SimpleMDE(options) {
             if (!styleSheets[i].href)
                 continue;
 
-            if (styleSheets[i].href.indexOf('//maxcdn.bootstrapcdn.com/font-awesome/') > -1) {
+            if (styleSheets[i].href.indexOf(
+                    '//maxcdn.bootstrapcdn.com/font-awesome/') > -1
+            ) {
                 autoDownloadFA = false;
             }
         }
@@ -1348,7 +1449,10 @@ function SimpleMDE(options) {
     if (autoDownloadFA) {
         var link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css';
+        link.href = (
+            'https://maxcdn.bootstrapcdn.com'
+            + '/font-awesome/latest/css/font-awesome.min.css'
+        );
         document.getElementsByTagName('head')[0].appendChild(link);
     }
 
@@ -1357,7 +1461,8 @@ function SimpleMDE(options) {
     if (options.element) {
         this.element = options.element;
     } else if (options.element === null) {
-        // This means that the element option was specified, but no element was found
+        // This means that the element option was specified, but no element was
+        // found
         console.log('SimpleMDE: Error. No element was found.');
         return;
     }
