@@ -1621,23 +1621,26 @@ SimpleMDE.prototype.autosave = function () {
             console.log('SimpleMDE: You must set a uniqueId to use the autosave feature');
             return;
         }
+        var autosaveKey = 'smde_' + simplemde.options.autosave.uniqueId;
 
-        if (simplemde.element.form != null && simplemde.element.form != undefined) {
-            simplemde.element.form.addEventListener('submit', function () {
-                localStorage.removeItem('smde_' + simplemde.options.autosave.uniqueId);
+        var form = simplemde.element.form;
+        if (form != null && form != undefined) {
+            form.addEventListener('submit', function () {
+                localStorage.removeItem(autosaveKey);
             });
         }
 
         if (this.options.autosave.loaded !== true) {
-            if (typeof localStorage.getItem('smde_' + this.options.autosave.uniqueId) == 'string' && localStorage.getItem('smde_' + this.options.autosave.uniqueId) != '') {
-                this.codemirror.setValue(localStorage.getItem('smde_' + this.options.autosave.uniqueId));
+            var savedValue = localStorage.getItem(autosaveKey);
+            if (typeof savedValue == 'string' && savedValue != '') {
+                this.codemirror.setValue(savedValue);
                 this.options.autosave.foundSavedValue = true;
             }
 
             this.options.autosave.loaded = true;
         }
 
-        localStorage.setItem('smde_' + this.options.autosave.uniqueId, simplemde.value());
+        localStorage.setItem(autosaveKey, simplemde.value());
 
         var el = document.getElementById('autosaved');
         if (el != null && el != undefined && el != '') {
