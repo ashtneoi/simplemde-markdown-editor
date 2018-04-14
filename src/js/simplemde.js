@@ -1630,12 +1630,12 @@ SimpleMDE.prototype.autosave = function () {
         return;
     }
 
-    var simplemde = this;
+    var self = this;
 
     var autosaveKey = this.getAutosaveKey();
     if (autosaveKey == undefined) { return; }
 
-    var form = simplemde.element.form;
+    var form = self.element.form;
     if (form != null && form != undefined) {
         form.addEventListener('submit', function () {
             localStorage.removeItem(autosaveKey);
@@ -1652,7 +1652,7 @@ SimpleMDE.prototype.autosave = function () {
         this.options.autosave.loaded = true;
     }
 
-    localStorage.setItem(autosaveKey, simplemde.value());
+    localStorage.setItem(autosaveKey, self.value());
 
     var el = document.getElementById('autosaved');
     if (el != null && el != undefined && el != '') {
@@ -1674,7 +1674,7 @@ SimpleMDE.prototype.autosave = function () {
     }
 
     this.autosaveTimeoutId = setTimeout(function () {
-        simplemde.autosave();
+        self.autosave();
     }, this.options.autosave.delay || 10000);
 };
 
@@ -1711,8 +1711,9 @@ SimpleMDE.prototype.createSideBySide = function () {
             return;
         }
         pScroll = true;
-        var height = v.getScrollInfo().height - v.getScrollInfo().clientHeight;
-        var ratio = parseFloat(v.getScrollInfo().top) / height;
+        var scrollInfo = v.getScrollInfo();
+        var height = scrollInfo.height - scrollInfo.clientHeight;
+        var ratio = parseFloat(scrollInfo.top) / height;
         var move = (preview.scrollHeight - preview.clientHeight) * ratio;
         preview.scrollTop = move;
     });
@@ -1724,9 +1725,10 @@ SimpleMDE.prototype.createSideBySide = function () {
             return;
         }
         cScroll = true;
+        var scrollInfo = cm.getScrollInfo();
         var height = preview.scrollHeight - preview.clientHeight;
         var ratio = parseFloat(preview.scrollTop) / height;
-        var move = (cm.getScrollInfo().height - cm.getScrollInfo().clientHeight) * ratio;
+        var move = (scrollInfo.height - scrollInfo.clientHeight) * ratio;
         cm.scrollTo(0, move);
     };
     return preview;
@@ -1753,16 +1755,23 @@ SimpleMDE.prototype.createToolbar = function (items) {
     var toolbarData = {};
     self.toolbar = items;
 
+    function isIconHidden(name) {
+        return self.options.hideIcons
+            && self.options.hideIcons.indexOf(name) != -1;
+    }
+
     for (i = 0; i < items.length; i++) {
-        if (items[i].name == 'guide' && self.options.toolbarGuideIcon === false)
+        var name = items[i].name;
+
+        if (name == 'guide' && self.options.toolbarGuideIcon === false)
             continue;
 
-        if (self.options.hideIcons && self.options.hideIcons.indexOf(items[i].name) != -1)
+        if (isIconHidden(name))
             continue;
 
         // Fullscreen does not work well on mobile devices (even tablets)
         // In the future, hopefully this can be resolved
-        if ((items[i].name == 'fullscreen' || items[i].name == 'side-by-side') && isMobile())
+        if ((name == 'fullscreen' || name == 'side-by-side') && isMobile())
             continue;
 
 
@@ -1771,9 +1780,8 @@ SimpleMDE.prototype.createToolbar = function (items) {
             var nonSeparatorIconsFollow = false;
 
             for (var x = (i + 1); x < items.length; x++) {
-                if (items[x] !== '|' && (!self.options.hideIcons || self.options.hideIcons.indexOf(items[x].name) == -1)) {
+                if (items[x] !== '|' && !isIconHidden(items[x].name))
                     nonSeparatorIconsFollow = true;
-                }
             }
 
             if (!nonSeparatorIconsFollow)
@@ -1787,7 +1795,9 @@ SimpleMDE.prototype.createToolbar = function (items) {
             if (item === '|') {
                 el = createSep();
             } else {
-                el = createIcon(item, self.options.toolbarTips, self.options.shortcuts);
+                el = createIcon(
+                    item, self.options.toolbarTips, self.options.shortcuts
+                );
             }
 
             // bind events, special for info
@@ -1889,7 +1899,8 @@ SimpleMDE.prototype.createStatusbar = function (status) {
                 };
             } else if (name === 'autosave') {
                 defaultValue = function (el) {
-                    if (options.autosave != undefined && options.autosave.enabled === true) {
+                    var autosave = options.autosave;
+                    if (autosave != undefined && autosave.enabled === true) {
                         el.setAttribute('id', 'autosaved');
                     }
                 };
