@@ -1599,14 +1599,14 @@ SimpleMDE.prototype.render = function (el) {
 
 // Safari, in Private Browsing Mode, looks like it supports localStorage but all calls to setItem throw QuotaExceededError. We're going to detect this and set a variable accordingly.
 function isLocalStorageAvailable() {
-    if (typeof localStorage === 'object') {
-        try {
-            localStorage.setItem('smde_localStorage', 1);
-            localStorage.removeItem('smde_localStorage');
-        } catch (e) {
-            return false;
-        }
-    } else {
+    if (typeof localStorage !== 'object') {
+        return false;
+    }
+
+    try {
+        localStorage.setItem('smde_localStorage', 1);
+        localStorage.removeItem('smde_localStorage');
+    } catch (e) {
         return false;
     }
 
@@ -1623,67 +1623,69 @@ SimpleMDE.prototype.getAutosaveKey = function () {
 };
 
 SimpleMDE.prototype.autosave = function () {
-    if (isLocalStorageAvailable()) {
-        var simplemde = this;
-
-        var autosaveKey = this.getAutosaveKey();
-        if (autosaveKey == undefined) { return; }
-
-        var form = simplemde.element.form;
-        if (form != null && form != undefined) {
-            form.addEventListener('submit', function () {
-                localStorage.removeItem(autosaveKey);
-            });
-        }
-
-        if (this.options.autosave.loaded !== true) {
-            var savedValue = localStorage.getItem(autosaveKey);
-            if (typeof savedValue == 'string' && savedValue != '') {
-                this.codemirror.setValue(savedValue);
-                this.options.autosave.foundSavedValue = true;
-            }
-
-            this.options.autosave.loaded = true;
-        }
-
-        localStorage.setItem(autosaveKey, simplemde.value());
-
-        var el = document.getElementById('autosaved');
-        if (el != null && el != undefined && el != '') {
-            var d = new Date();
-            var hh = d.getHours();
-            var m = d.getMinutes();
-            var dd = 'am';
-            var h = hh;
-            if (h >= 12) {
-                h = hh - 12;
-                dd = 'pm';
-            }
-            if (h == 0) {
-                h = 12;
-            }
-            m = m < 10 ? '0' + m : m;
-
-            el.innerHTML = 'Autosaved: ' + h + ':' + m + ' ' + dd;
-        }
-
-        this.autosaveTimeoutId = setTimeout(function () {
-            simplemde.autosave();
-        }, this.options.autosave.delay || 10000);
-    } else {
+    if (!isLocalStorageAvailable()) {
         console.log('SimpleMDE: localStorage not available, cannot autosave');
+        return;
     }
+
+    var simplemde = this;
+
+    var autosaveKey = this.getAutosaveKey();
+    if (autosaveKey == undefined) { return; }
+
+    var form = simplemde.element.form;
+    if (form != null && form != undefined) {
+        form.addEventListener('submit', function () {
+            localStorage.removeItem(autosaveKey);
+        });
+    }
+
+    if (this.options.autosave.loaded !== true) {
+        var savedValue = localStorage.getItem(autosaveKey);
+        if (typeof savedValue == 'string' && savedValue != '') {
+            this.codemirror.setValue(savedValue);
+            this.options.autosave.foundSavedValue = true;
+        }
+
+        this.options.autosave.loaded = true;
+    }
+
+    localStorage.setItem(autosaveKey, simplemde.value());
+
+    var el = document.getElementById('autosaved');
+    if (el != null && el != undefined && el != '') {
+        var d = new Date();
+        var hh = d.getHours();
+        var m = d.getMinutes();
+        var dd = 'am';
+        var h = hh;
+        if (h >= 12) {
+            h = hh - 12;
+            dd = 'pm';
+        }
+        if (h == 0) {
+            h = 12;
+        }
+        m = m < 10 ? '0' + m : m;
+
+        el.innerHTML = 'Autosaved: ' + h + ':' + m + ' ' + dd;
+    }
+
+    this.autosaveTimeoutId = setTimeout(function () {
+        simplemde.autosave();
+    }, this.options.autosave.delay || 10000);
 };
 
 SimpleMDE.prototype.clearAutosavedValue = function () {
-    if (isLocalStorageAvailable()) {
-        var autosaveKey = this.getAutosaveKey();
-        if (autosaveKey == undefined) { return; }
-
-        localStorage.removeItem(autosaveKey);
-    } else {
+    if (!isLocalStorageAvailable()) {
         console.log('SimpleMDE: localStorage not available, cannot autosave');
+        return;
     }
+
+    var autosaveKey = this.getAutosaveKey();
+    if (autosaveKey == undefined) { return; }
+
+    localStorage.removeItem(autosaveKey);
 };
 
 SimpleMDE.prototype.createSideBySide = function () {
