@@ -1424,8 +1424,9 @@ function SimpleMDE(options) {
 
 
     // Change unique_id to uniqueId for backwards compatibility
-    if (options.autosave != undefined && options.autosave.unique_id != undefined && options.autosave.unique_id != '')
-        options.autosave.uniqueId = options.autosave.unique_id;
+    var autosave = options.autosave;
+    if (autosave != undefined && autosave.unique_id != undefined && autosave.unique_id != '')
+        autosave.uniqueId = autosave.unique_id;
 
 
     // Update this options
@@ -1448,23 +1449,24 @@ function SimpleMDE(options) {
  * Default markdown render.
  */
 SimpleMDE.prototype.markdown = function (text) {
-    if (marked) {
-        // Initialize
-        var markedOptions;
-        if (this.options && this.options.renderingConfig && this.options.renderingConfig.markedOptions) {
+    if (!marked) {
+        return;
+    }
+
+    // Initialize
+    var markedOptions = { breaks: true };
+    if (this.options && this.options.renderingConfig) {
+        var renderingConfig = this.options.renderingConfig;
+
+        if (renderingConfig.markedOptions) {
             markedOptions = this.options.renderingConfig.markedOptions;
-        } else {
-            markedOptions = {};
         }
 
-        // Update options
-        if (this.options && this.options.renderingConfig && this.options.renderingConfig.singleLineBreaks === false) {
+        if (renderingConfig.singleLineBreaks === false) {
             markedOptions.breaks = false;
-        } else {
-            markedOptions.breaks = true;
         }
 
-        if (this.options && this.options.renderingConfig && this.options.renderingConfig.codeSyntaxHighlighting === true) {
+        if (renderingConfig.codeSyntaxHighlighting === true) {
 
             /* Get HLJS from config or window */
             var hljs = this.options.renderingConfig.hljs || window.hljs;
@@ -1476,15 +1478,15 @@ SimpleMDE.prototype.markdown = function (text) {
                 };
             }
         }
-
-
-        // Set options
-        marked.setOptions(markedOptions);
-
-
-        // Return
-        return marked(text);
     }
+
+
+    // Set options
+    marked.setOptions(markedOptions);
+
+
+    // Return
+    return marked(text);
 };
 
 /**
@@ -1527,8 +1529,8 @@ SimpleMDE.prototype.render = function (el) {
     document.addEventListener('keydown', function (e) {
         e = e || window.event;
 
-        if (e.keyCode == 27) {
-            if (self.codemirror.getOption('fullScreen')) toggleFullScreen(self);
+        if (e.keyCode == 27 && self.codemirror.getOption('fullScreen')) {
+            toggleFullScreen(self);
         }
     }, false);
 
