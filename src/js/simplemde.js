@@ -1613,15 +1613,21 @@ function isLocalStorageAvailable() {
     return true;
 }
 
+SimpleMDE.prototype.getAutosaveKey = function () {
+    var autosave = this.options.autosave;
+    if (autosave.uniqueId == undefined || autosave.uniqueId == '') {
+        console.log('SimpleMDE: You must set a uniqueId to use the autosave feature');
+        return;
+    }
+    return 'smde_' + autosave.uniqueId;
+};
+
 SimpleMDE.prototype.autosave = function () {
     if (isLocalStorageAvailable()) {
         var simplemde = this;
 
-        if (this.options.autosave.uniqueId == undefined || this.options.autosave.uniqueId == '') {
-            console.log('SimpleMDE: You must set a uniqueId to use the autosave feature');
-            return;
-        }
-        var autosaveKey = 'smde_' + simplemde.options.autosave.uniqueId;
+        var autosaveKey = this.getAutosaveKey();
+        if (autosaveKey == undefined) { return; }
 
         var form = simplemde.element.form;
         if (form != null && form != undefined) {
@@ -1671,12 +1677,10 @@ SimpleMDE.prototype.autosave = function () {
 
 SimpleMDE.prototype.clearAutosavedValue = function () {
     if (isLocalStorageAvailable()) {
-        if (this.options.autosave == undefined || this.options.autosave.uniqueId == undefined || this.options.autosave.uniqueId == '') {
-            console.log('SimpleMDE: You must set a uniqueId to clear the autosave value');
-            return;
-        }
+        var autosaveKey = this.getAutosaveKey();
+        if (autosaveKey == undefined) { return; }
 
-        localStorage.removeItem('smde_' + this.options.autosave.uniqueId);
+        localStorage.removeItem(autosaveKey);
     } else {
         console.log('SimpleMDE: localStorage not available, cannot autosave');
     }
